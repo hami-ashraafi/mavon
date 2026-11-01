@@ -1,116 +1,205 @@
-# Mavon Finance — 0.1.0
-Persian RTL financial prototype. Static browser app, local storage schema v1. Owner-private deployment.
+# ماوون — سامانهٔ مدیریت مالی
 
-Implemented: products, CSV/XLSX import (first sheet, native browser deflate-raw), customers/suppliers, sales/purchases with stock validation, payments, checks with settlement, account statements, print/PDF, JSON backup/restore. Offline shell via service worker after successful initial visit.
+**نسخهٔ فعلی: ۰.۷.۲**
 
-Not production accounting software: no backend, authentication/roles, multi-device sync, automatic backups, native Mac/iOS installers, tax compliance, refunds or immutable audit log. Site access authentication may limit offline reopening. PWA behavior depends on browser and hosting. Clearing browser data deletes local records; export backups regularly. No server copy exists.
+ماوون یک سامانهٔ مالی فارسی و راست‌به‌چپ برای مدیریت کالا، انبار، مشتریان، تأمین‌کنندگان، خرید و فروش، دریافت و پرداخت و چک است. برنامه نسخهٔ وب دارد و سورس بسته‌بندی برنامهٔ مک با پردازندهٔ Apple Silicon نیز در این مخزن قرار گرفته است.
 
-Data contract: localStorage key `mavon-finance-v1`, schemaVersion 1. Preserve this key and origin in upgrades. Future schema changes must run backed-up, transactional migrations without clearing existing data. Maintain pending offline operations separately when adding server sync. Current records are local only; do not indicate they are synced.
+[ورود به نسخهٔ وب ماوون](https://mavon-finance-moein.sturdylion256.chatgpt.site)
 
-Invoices retain snapshots of product name/code/price. Current inventory = opening + purchased - sold. Party positive balance = customer owes business / business owes supplier. Payments reduce respective balance. Check settlement creates one payment and becomes final in this prototype. Invoice IDs UUID; displayed numbers local sequential and require replacement with device-safe numbering for sync.
+نسخهٔ وب فعلاً خصوصی است؛ ممکن است پیش از ورود به حساب برنامه، ورود به ChatGPT و داشتن دسترسی به سایت لازم باشد. قرار گرفتن سورس در گیت‌هاب، برنامه یا پایگاه دادهٔ سایت را به‌طور خودکار روی GitHub Pages اجرا نمی‌کند.
 
-Testing: node --check dist/app.js; browser functional checks. No build step. Static root dist.
+## شروع استفاده
 
-## 0.2.0
-Separate module workspaces: customer accounts, detailed groups and party definitions, finance, warehouse/cardex, commerce, and personnel access templates. Home contains module navigation only.
+۱. برای اولین ورود به اینترنت متصل شوید و گزینهٔ **«حساب ندارم / راه‌اندازی مدیر»** را انتخاب کنید. [لینک مستقیم راه‌اندازی](https://mavon-finance-moein.sturdylion256.chatgpt.site/?setup=1) نیز همین بخش را باز می‌کند.
 
-Added groups/staff/returns as optional additive v1 fields. Old data and old backups remain readable; missing fields receive defaults without modifying existing monetary records. Same localStorage key and deployed origin. Personnel permission templates are local configuration only and DO NOT enforce access or create logins.
+۲. نام کاربری و یک رمز عددی **۴ تا ۶ رقمی** برای مدیر تعیین کنید. **رمز پیش‌فرضی وجود ندارد.** اعداد فارسی، عربی و انگلیسی پذیرفته می‌شوند و صفر ابتدای رمز حفظ می‌شود.
 
-Returns reference one original invoice and original line indexes, cap cumulative returned quantity, preserve original discount with cumulative integer allocation, and adjust inventory and party balance. Return cash settlement offsets its balance reduction. Purchase returns require available stock. Cardex includes opening, purchases, sales, and returns, linked to documents. Return amounts are validated on backup restore.
+۳. در **«دسترسی پرسنل ← تعریف و مدیریت کاربران»** برای هر نفر حساب جداگانه و مجوز ثبت و اصلاح تعریف کنید. دسترسی به سایت خصوصی نیز باید برای افراد موردنظر فراهم باشد.
 
-Validation: expanded tests/core.cjs for upgrade preservation, partial/full returns, exact discount allocation, cash refund balances, purchase returns, inventory restrictions, and invalid backup rejection. Browser exercised return of one unit from an invoice created in 0.1.0: stock 24 -> sale 22 -> return 23, with linked cardex rows.
+۴. برای استفادهٔ مشترک روی چند دستگاه، همگام‌سازی را روی هر دستگاه فعال کنید. پیش از پذیرش داده‌های سرور روی دستگاه جدید، از اطلاعات محلی نسخهٔ پشتیبان بگیرید.
 
-## 0.3.0
-Manual cardex search by product name/reference/brand. Full customer ledger separates invoice value, invoice cash payment, return value, return cash refund, standalone cash/bank/card payments, cheque receipt, status transitions and cheque settlement. Informational cheque events never affect balance; cleared payment affects it once. Each row shows running balance, document date, registration timestamp and actor. Unknown legacy methods/actors/timestamps remain explicitly unknown.
+نسخهٔ عملیاتی از اطلاعات خالی شروع می‌شود؛ کالا، مشتری، فاکتور، موجودی و چک آزمایشی در آن ساخته نمی‌شود. یک انبار اصلی خالی و گروه‌های سیستمی باقی می‌مانند. داده‌های نمایشی نسخه‌های قدیمی خودکار وارد فضای عملیاتی نمی‌شوند.
 
-All domain mutations through commit() receive createdAt/createdBy and updatedAt/updatedBy, plus atomic append-only-in-app audit events with before/after fields and snapshots. Existing creator metadata is preserved on edits. No-op edits create no event. Failed storage rolls back data and audit together. Original localStorage key and schema version retained; audit is an additive optional field. Old backups remain accepted; restore retains both available journals and records the restore operation. This journal is browser-local, editable through browser storage, and not a tamper-proof server log.
+اگر حساب مدیر قبلاً ساخته شده باشد، فقط هویت ثبت‌شدهٔ مالک فضای کاری می‌تواند از بخش راه‌اندازی، مشخصات مدیر را بازیابی یا جایگزین کند. این کار اطلاعات مالی و حساب‌های پرسنل را پاک نمی‌کند و نشست‌های قبلی مدیر را باطل می‌کند.
 
-Actor is a self-declared local display name configurable under Settings/History, NOT an authenticated personnel identity. Timestamps come from device clock, stored as ISO and displayed in Asia/Tehran. Legacy records are not assigned invented users or times. Full-ledger print uses landscape A4. Tests cover complete running balance, metadata preservation, before/after edits, cheque lifecycle, duplicate settlement prevention, backup audit validation and transactional rollback.
+## امکانات
 
-## 0.3.1 — split payment demonstration
-`?demo=split-payment` opens an isolated scenario using localStorage key `mavon-finance-split-demo-v1`; the main key is untouched. First visit creates a dedicated customer, product, a 20,000,000-toman invoice for two watches, 10,000,000 cash paid at invoice creation and a 10,000,000 pending cheque due seven days later. The page provides invoice, full ledger, cheque history, cardex and a guarded simulated-clearing button. Clearing creates one invoice-linked cheque payment and journals both operations. Invoice outstanding and status now include explicitly invoice-linked subsequent payments and returns. No real banking transaction occurs.
+- **کالا و قیمت‌گذاری:** تعریف و اصلاح کالا، جست‌وجو با نام، کد یا برند، ورود گروهی از Excel و CSV، تغییر گروهی قیمت خرید و فروش و خروجی قیمت‌های فعلی.
+- **طرف‌حساب‌ها:** تعریف مشتری و تأمین‌کننده، گروه‌بندی، استان، شهر و نشانی، ماندهٔ حساب و گردش کامل اسناد و پرداخت‌ها.
+- **خرید و فروش:** ثبت و اصلاح فاکتور، انتخاب هم‌زمان چند کالا، کنترل موجودی، تخفیف، پرداخت و پیوند اسناد مرتبط. قیمت و مشخصات هر ردیف در سند حفظ می‌شود؛ تغییر قیمت کالا، فاکتورهای قبلی را تغییر نمی‌دهد.
+- **برگشت از خرید و فروش:** انتخاب فاکتور مبنا و ردیف‌های آن، کنترل سقف تعداد قابل برگشت، تخصیص صحیح تخفیف و تعیین انبار. برگشت فروش می‌تواند بدون استرداد فوری وجه، برای مشتری بستانکاری ایجاد کند.
+- **انبار:** چند انبار، موجودی اولیه، انتقال چند کالا بین انبارها، کاردکس قابل جست‌وجو و گزارش تعداد و ارزش موجودی.
+- **دریافت و پرداخت:** وجه نقد، بانک، کارت و چند چک در یک رسید مشترک، با امکان تخصیص به فاکتور و کنترل مبلغ.
+- **چک:** ثبت، اصلاح و پیگیری وضعیت، برگشت و وصول، با جلوگیری از محاسبهٔ دوبارهٔ مبلغ.
+- **گزارش‌ها:** گردش حساب، جریان وجوه، موجودی، سوابق تغییرات، چاپ و PDF و خروجی واقعی XLSX از بخش‌های مختلف.
+- **بومی‌سازی:** مبلغ‌ها بر حسب **ریال**، تاریخ‌های نمایشی و ورودی شمسی، پذیرش ارقام فارسی و عربی و جداکنندهٔ هزارگان.
+- **پشتیبان‌گیری:** خروجی و بازیابی JSON و نگهداری نسخه‌های ثبت‌شده روی سرور هنگام همگام‌سازی موفق.
 
-Validated via core tests and browser: pending balance 10m; cash/cheque lifecycle visible in ledger; simulated clearance zeros both invoice and party balances, with no duplicate receipts. Source and main/demo storage remain separate.
+### قواعد مالی مهم
 
-## 0.3.2 — main-list example visibility fix
-The isolated demo was not visible in the main local invoice list. Added `?example=split-payment`, which atomically and idempotently creates a clearly marked 20m sample invoice, 10m invoice cash payment, and linked 10m pending check in the main browser storage, then opens the actual invoice list. Existing records remain unchanged. Also added a persistent "ثبت فاکتور نمونه" button in that list and contextual links to the sample document, ledger and cheque list. Collision checks avoid overwriting identifiers, codes or invoice numbers. Tests/browser verified the new invoice row appears alongside previous invoices, preserves prior data, creates only once and settles correctly.
+- از نسخهٔ ۰.۴.۱، دریافت چکِ در جریان یا وصول‌شده، ماندهٔ طرف‌حساب و فاکتور را کاهش می‌دهد. چک برگشتی اثر تسویه ندارد؛ وصول مجدد مبلغ را دوباره کسر نمی‌کند.
+- دریافت نقدی، برگشت وجه، تغییر وضعیت چک و وصول در گردش حساب از هم تفکیک می‌شوند. ردیف‌های صرفاً اطلاع‌رسانی اثر مالی مضاعف ندارند.
+- موجودی هر انبار جداگانه کنترل می‌شود. انتقال کالا مجموع موجودی انبارها و ماندهٔ طرف‌حساب را تغییر نمی‌دهد.
+- ارزش موجودی گزارش‌شده بر اساس قیمت خرید یا فروش فعلیِ انتخاب‌شده است؛ این گزارش، محاسبهٔ FIFO یا میانگین موزون تاریخی نیست.
+- اصلاحات مالی پیش از ثبت از نظر موجودی، برگشت‌ها، مبالغ تخصیص‌یافته و تسویهٔ چک بررسی می‌شوند؛ عملیات نامعتبر به‌صورت یکجا رد می‌شود.
 
-## 0.4.0
-All monetary values now use IRR. Startup and legacy-backup restore multiply legacy IRT fields by ten once, preserving quantities, identifiers and timestamps. `currency: IRR` prevents double conversion. The original browser JSON is retained under `<main-key>-before-IRR` before replacing persisted data. Monetary audit snapshots/field changes are converted consistently; existing return-allocation rounding is preserved with per-line allocation metadata. Overflow aborts rather than replacing old data. A system journal event records currency conversion. New Excel imports are explicitly rial amounts. Numeric inputs accept Persian/Arabic digits and display comma groups; document identifiers/phones/dates are preserved.
+## ورود و خروج Excel
 
-Invoice creation now lists every product with checkboxes, searchable by reference/name/brand. A Set preserves selections across filters. Select/deselect visible results and add selections together; existing invoice lines are not duplicated. Quantities and unit prices remain editable after adding. Invoice editing reuses this workflow.
+ورودی XLSX و CSV سه حالت دارد: **فقط ایجاد کالا، فقط به‌روزرسانی قیمت، و حالت ترکیبی**. تطبیق کالا با کد یا رفرنس انجام می‌شود. در حالت اصلاح قیمت، نام، موجودی و اسناد قبلی تغییر نمی‌کنند.
 
-Unified receipts support a cash/bank/card component plus multiple checks in one atomic commit with a shared receiptId, timestamp and actor. Optional invoice allocation prevents over-coverage including pending checks; check receipt itself does not reduce balance, clearance does. Invalid/duplicate checks abort the entire batch.
+خانهٔ خالیِ قیمت، مقدار فعلی را حفظ می‌کند و صفر صریح، قیمت را صفر می‌کند. ایجاد کالای جدید به نام و هر دو قیمت نیاز دارد. رفرنس‌های تکراری فایل رد می‌شوند و در حالت «فقط قیمت»، کالای ناشناخته ساخته نمی‌شود. پیش‌نمایش، قیمت قبلی و جدید و دلیل رد ردیف‌ها را نشان می‌دهد؛ ثبت نهایی یکجا و با بررسی مجوز و تازه‌بودن قیمت‌ها انجام می‌شود.
 
-Correction forms added for invoices, returns, payments and check fields/status; product/party opening amounts can also be corrected. Financial corrections revalidate available inventory, returns, allocations and cheque settlement consistency before saving. Editing a cleared cheque keeps its settlement consistent; reverting clearance removes the associated settlement with an audited deletion. Existing create/edit metadata is retained and all corrections journal before/after values.
+خروجی XLSX جدول‌ها، جست‌وجو و فیلترهای فعلی را لحاظ می‌کند. شیت‌ها راست‌به‌چپ‌اند، سرفصل ثابت دارند، مبلغ‌ها عددی و کدها و شماره‌ها متنی ذخیره می‌شوند تا صفر اول حفظ شود. متن شبیه فرمول، به‌صورت متن صادر می‌شود. خروجی Excel جایگزین پشتیبان JSON برای بازیابی برنامه نیست.
 
-Local staff-role simulation filters navigation and rejects unauthorized creates/edits at commit, including rollback. Header profile selector is explicitly an unauthenticated simulation; these are NOT secure server permissions. Actual user authentication and server-side authorization are still pending. Role changes and frontend controls cannot protect against direct browser storage access.
+## همگام‌سازی و کار آفلاین
 
-Validation: core tests cover IRR idempotence, monetary preservation, partial-return rounding, overflow, formatted numeric parsing, multi-search selection, atomic multi-check receipts and invoice settlement, local-role mutation rejection and correction constraints. Browser verified two searched products become a 147,000,000 IRR invoice and a combined 47,000,000 cash / 100,000,000 cheque receipt shows correct running balance.
+همگام‌سازی روی هر دستگاه اختیاری است و با تهیهٔ نقطهٔ بازیابی محلی آغاز می‌شود. اولین بار مدیر می‌تواند داده‌های محلی را به سرور منتقل کند؛ دستگاه‌های دیگر پس از پشتیبان‌گیری، داده‌های سرور را می‌پذیرند.
 
-## 0.4.1
-All date-entry fields now use Jalali text input and an inline Persian month/day calendar. Persian/Arabic digits are accepted; conversion to canonical ISO happens only at submit, then inputs reformat to Jalali. Invalid month lengths/leap days are rejected. Existing stored dates and timestamps are preserved; visible dates, audit date changes, and backup filenames use the Persian calendar. Internal ISO storage is retained for compatibility.
+در حالت فعال، برنامه تقریباً هر ۲۰ ثانیه همگام می‌شود. تغییرات آفلاین در دستگاه نگه داشته می‌شوند و پس از اتصال برای ارسال آماده می‌شوند. هنگام ارسال، ثبت تغییرات موقتاً قفل می‌شود. شناسهٔ درخواست و شمارهٔ بازبینی از ثبت تکراری جلوگیری می‌کنند.
 
-Per user instruction, cheques now reduce party/invoice balances on receipt (pending or cleared); returned cheques have no current settlement effect. Legacy check-linked clearance payments are retained but excluded from double deductions. Ledger receipt rows carry the cheque amount, bounce/re-receipt transitions reverse/reapply it, and clearance rows are informational. A backed-up, idempotent accounting-policy marker records the change; monetary records are not rewritten/deleted. Pending invoice allocations are no longer reserved twice.
+تغییر مستقل روی رکوردهای متفاوت می‌تواند با ادغام سه‌طرفهٔ صریح ترکیب شود؛ تغییر یا حذف هم‌زمان یک رکورد برای بررسی نگه داشته می‌شود. برنامه برای اسناد مالی از قاعدهٔ «آخرین تغییر برنده است» استفاده نمی‌کند. اسناد در حالت ابری پسوند دستگاه دارند و اعتبارسنجی مالی و موجودی روی سرور هم اجرا می‌شود.
 
-A direct "اصلاح" action is visible in each invoice-list row, honoring edit permission. Browser verified opening that action, selecting a Jalali date from the calendar, editing quantity and successfully saving updated totals with original creation metadata and new modification metadata. Tests cover Jalali leap/month boundaries and receipt/bounce/re-receipt/clear balances without double counting.
+هر بار ارسال موفق، یک نسخهٔ کامل از وضعیت را روی سرور نگه می‌دارد. مالک می‌تواند ۵۰ نسخهٔ اخیر را در فهرست ببیند و نسخه‌های قدیمی‌ترِ معلوم را با شماره دریافت کند. سقف فعلی هر وضعیت **۱٫۲ مگابایت** است؛ دادهٔ بزرگ‌تر بدون جایگزین کردن اطلاعات قبلی رد می‌شود. پشتیبان‌گیری زمان‌بندی‌شده یا بازیابی بحران در فضای مستقل تنظیم نشده است.
 
-## 0.5.0
-Customer/supplier definitions now include province, city and address, also shown on invoices. Added multi-warehouse definitions and selectors in invoices, returns, opening balances, cardex and stock reports. Existing openings/documents are assigned to deterministic `wh-main` without changing quantity or value; original browser data is checkpointed before the warehouse upgrade. Backup validation recognizes warehouse and transfer records; all mutations preserve audit metadata.
+## حساب‌ها و امنیت
 
-Inventory report shows unit price, quantity, per-product inventory value and a footer sum for displayed products, honoring warehouse/search filters. Valuation explicitly uses the currently defined purchase or sale price, not FIFO or historical weighted cost.
+ورود برنامه علاوه بر مرز دسترسی سایت خصوصی اجرا می‌شود. رمزها با نمک تصادفی و PBKDF2-SHA256 با ۱۰۰٬۰۰۰ تکرار هش می‌شوند. رمز متنی ذخیره نمی‌شود و رمز و هش آن در خروجی مالی، همگام‌سازی یا فهرست کاربران قرار نمی‌گیرد.
 
-Multi-product transfers debit source and credit destination without affecting global stock or customer balances. Edits and documents validate nonnegative stock per warehouse and roll back invalid changes atomically. Transfer movements appear in cardex with linked documents.
+نشست‌های آنلاین حداکثر هفت روز اعتبار دارند و به هویت پلتفرم متصل‌اند. کوکی نشست دارای ویژگی‌های `Secure`، `HttpOnly` و `SameSite=Strict` است. برای محیط‌هایی که کوکی برنامه را نگه نمی‌دارند، همان توکن نشست فقط در حافظهٔ صفحه نگه داشته و با هدر `Authorization` ارسال می‌شود؛ در `localStorage` ذخیره نمی‌شود.
 
-Returns now begin with a searchable sale/purchase invoice selector and display only that invoice's lines, with checkbox selection, persistent cross-search quantities, remaining-return limits and selected receiving/shipping warehouse. Fully settled sales can generate customer credit on return without requiring immediate cash refund.
+خروج، بازیابی یا تغییر رمز و تغییر وضعیت یا مجوز کاربر، نشست‌های مربوط را باطل می‌کند. ورود پس از هشت تلاش در محدودهٔ تعریف‌شده، ده دقیقه محدود می‌شود. درخواست‌های تغییردهندهٔ داده، JSON و هم‌مبدأ هستند و مجوزهای ثبت و اصلاح در سرور بررسی می‌شوند.
 
-Added commerce pricing workspace for selected product purchase/sale prices; cross-search drafts and selections persist. Historical invoice line prices stay unchanged. Trade editors may update only product pricing fields without being granted broad inventory-definition editing rights.
+همهٔ اعضای مجاز فضای مالی، اطلاعات مالی آن را می‌خوانند؛ محدود کردن ثبت و اصلاح یک ماژول به معنی مخفی کردن داده‌های همان ماژول نیست. انتخاب نقش محلیِ نسخه‌های قدیمی نیز جایگزین احراز هویت واقعی نیست.
 
-Added unified cashflow report: invoice cash, return cash, standalone cash/bank/card receipts and checks share one amount column. Clearance amounts are informational/zero-effect to prevent double counting. All native single-choice lists are progressively enhanced with the same searchable tick-choice pattern, retaining one selection where the field requires one; product/return/transfer/pricing lists support multiple selections.
+ورود آفلاین فقط تا **۷۲ ساعت پس از ورود آنلاین موفق روی همان دستگاه** امکان‌پذیر است. این قابلیت قفل محلی صفحه است؛ اطلاعات مرورگر رمزگذاری نشده‌اند و لغو دسترسی تا اتصال مجدد به دستگاه آفلاین نمی‌رسد. راه‌اندازی و ورود اولیه اینترنت می‌خواهند. بازیابی رمز از طریق پیامک یا ایمیل پیاده‌سازی نشده است؛ مدیر می‌تواند رمز پرسنل را بازنشانی کند.
 
-Validation: tests cover additive warehouse migration, per-warehouse and global quantities, conserved transfers, insufficient source stock rollback, return destination, inventory valuation/footer arithmetic, unchanged invoice pricing, malformed warehouse backups, customer address and credits. Browser QA covered creating a second warehouse, transferring three units, choosing an invoice and returning one item to the second warehouse, price updates, customer address fields and searchable selectors.
+## نسخهٔ مک
 
-## 0.5.1
-Excel XLSX/CSV workflow now supports create-only, update-prices-only and combined modes. Pricing workspace links directly to price import. Templates and an editable current-price export are available inside the app. Reference/code matches existing products; price-only updates preserve names, stock and historical invoices. Blank price cells preserve current values, explicit zero sets zero. New products require name and both prices; opening quantity and warehouse are supported. Preview shows old/new prices, selected rows and rejected-row reasons. Duplicate file references are all rejected; unknown references in price-only mode are not created. Selected operations commit atomically with audit and permission checks; stale preview prices reject the whole commit. Tests cover these cases and financial/stock preservation.
+کد بسته‌بندی، یک برنامهٔ Electron برای **macOS با پردازندهٔ Apple Silicon** تولید می‌کند. رابط داخل برنامه از فایل‌های همراه باز می‌شود و درخواست‌های ورود و API به سرور اصلی می‌روند. نسخهٔ مک از همان نشانی تولید برای حفظ سازگاری ذخیره‌سازی استفاده می‌کند.
 
-## 0.5.2
-Warehouse navigation now has a dedicated "تعریف کالا" workspace for single-product creation, Excel creation and editing definitions. Its table shows identifying product fields rather than inventory quantities/prices. Inventory reporting remains in "گزارش موجودی" with no create controls. Storage and existing records are unchanged.
+در بسته‌بندی، اتصال مستقیم رابط به Node.js غیرفعال است و جداسازی محیط، sandbox و امنیت وب فعال‌اند. شناسهٔ برنامه `com.mavon.finance` ثابت می‌ماند تا اطلاعات دستگاه در به‌روزرسانی حفظ شود.
 
-## 0.5.3
-Every workspace now exposes a real XLSX export. Current table exports reflect the visible search/warehouse/filter state, preserve inventory footer alignment, numeric monetary cells and Persian dates. Detail dialogs with report/document tables (invoice, return, transfer, ledger and history) export their tables plus document context and totals. Hub pages without tables export saved module data. Admin has a complete multi-sheet export; domain visibility checks restrict saved-data exports for local staff-role simulation.
+نصب‌کنندهٔ `desktop/Install-Mavon.command` برنامه را در پوشهٔ `Applications` حساب کاربر قرار می‌دهد و امضای محلی اعمال می‌کند. بسته امضای رسمی Apple Developer و notarization ندارد و به‌روزرسانی خودکار بومی نیز تنظیم نشده است. اجرای واقعی نسخهٔ مک در گزارش نسخهٔ قبلی تأیید نشده و نیاز به آزمایش روی دستگاه دارد.
 
-Workbook package is generated locally with OOXML, typed numeric cells, `#,##0` formatting, RTL worksheets and frozen headers. Codes/phones remain text including leading zeros; formula-like text is stored as literal inline strings. Full exports include separate document-line sheets, record metadata and available audit history. No stored data is modified by exporting. JSON backup remains the restore mechanism.
+پیش از جایگزینی نسخهٔ مک، خروجی JSON بگیرید، برنامه را ببندید و پوشهٔ `Application Support` آن را حذف نکنید. راهنمای فارسی بیشتر در [راهنمای نسخهٔ مک](desktop/README-FA.txt) است.
 
-Validation: browser inventory export produced success; independent Python zip/XML and openpyxl checks verified package integrity, numeric/text types, leading zeros, literal formula strings, Persian text, RTL, number formats and unique sheet names. Existing financial tests pass.
+## ساختار پروژه
 
-## 0.6.0 — durable server, offline sync, Apple Silicon desktop
-Frontend source moved unchanged from `dist/` to `public/`; `dist/server/index.js` is generated Worker output with embedded assets. Site identity, origin, localStorage main key and data schema are retained. Hosting now binds D1 `DB`; append-only Drizzle migrations create the server workspace, authenticated members, revision snapshots and membership audit. No financial data is seeded on the hosted server. The first authenticated visitor initializes the owner under the retained owner-private Sites boundary; do not open sharing before the owner has connected once.
+| مسیر | کاربرد |
+| --- | --- |
+| `public/` | رابط وب، ورود، همگام‌سازی، آیکون‌ها و فایل‌های آفلاین |
+| `worker/` | کد API و احراز هویت سرور |
+| `db/schema.ts` | تعریف ساختار پایگاه داده |
+| `drizzle/` | مهاجرت‌های پایگاه داده و فرادادهٔ آن‌ها |
+| `scripts/build.mjs` | ساخت Worker با فایل‌های رابط و اعتبارسنج مشترک |
+| `scripts/dev.mjs` | آماده‌سازی پایگاه دادهٔ محلی و اجرای محیط توسعه |
+| `desktop/` | برنامه، نصب‌کننده و ابزار بسته‌بندی مک |
+| `tests/` | آزمون‌های مالی، همگام‌سازی و نسخهٔ دسکتاپ |
+| `dist/server/index.js` | خروجی ساخته‌شدهٔ Worker؛ سورس اصلی رابط در `public/` است |
+| `.openai/hosting.json` | شناسه و تنظیمات میزبانی سایت فعلی |
+| `wrangler.jsonc` | تنظیمات Wrangler و پایگاه دادهٔ محلی |
 
-Cloud sync is opt-in on each device with a local JSON checkpoint/download. First owner upload imports existing data; additional devices explicitly adopt server data after backup. Autosync polls every 20 seconds, queues durable local changes offline, and locks commits during an in-flight sync. Full snapshot writes use transactional compare-and-swap revisions, persisted request IDs and idempotent receipt recovery. Concurrent independent records may be explicitly three-way merged; simultaneous edits/deletions to one record are held for review. No last-writer-wins for financial documents. Merged snapshots run the same frontend financial/stock rules on the server. Document numbers get a device suffix when cloud-enabled.
+## اجرای توسعه و ساخت
 
-Sites authenticated identity is checked on every API request; mutations require same-origin JSON. Server membership supports owner, viewer and editor with module create/edit permissions. All authorized members read the full financial workspace; module view redaction is not claimed. Owner-private Site access must also explicitly admit personnel before their accounts can reach membership checks. Local staff simulation cannot change the authenticated server actor. Canonical server metadata and append-only revision snapshots preserve authenticated user/time; imported historical metadata remains historical and unverified. Every successful upload saves a complete immutable revision; owner can download the latest 50 listed revisions or a known older revision by number. No scheduled backup or external disaster recovery is configured. Current snapshot cap is 1.2 MB; oversize data is rejected without replacing local or server state.
+برای اجرای دستورها به Node.js و npm سازگار با وابستگی‌های پروژه نیاز دارید. از ریشهٔ مخزن اجرا کنید:
 
-Mac packaging: `npm run package:mac` produces a real Electron 45.2.1 darwin-arm64 `.app`. The bundled frontend is served locally at the production HTTPS origin using Electron session protocol handling; API and sign-in are forwarded through the same browser session to the real server. Node integration is off, context isolation/sandbox/web security are on, and permission prompts are denied. Stable bundle ID/name retain userData between updates. Install-Mavon.command installs into ~/Applications and applies a local ad-hoc signature using macOS codesign; no Apple Developer certificate, notarization, or Gatekeeper disabling. This Linux environment cannot execute the Mac binary or certify Apple login/launch behavior; actual Mac smoke testing remains required. No automatic native updater is configured. Replace .app manually using the installer, retaining Application Support and exporting JSON first.
+```bash
+npm ci
+npm run build
+npm run dev
+```
 
-Validation: full financial regression suite; actual SQLite-backed D1 adapter tests for identity, membership, role enforcement, CSRF, audit spoof prevention, CAS races, invalid inventory, idempotency, revision history; two isolated browser-context tests for offline persistence, independent merge, same-record conflicts and lost acknowledgements; desktop protocol/sandbox unit test and arm64 Mach-O inspection. Local Wrangler migrations are separate from hosted migrations.
+اسکریپت توسعه ابتدا مهاجرت‌های D1 را **در محیط محلی** اجرا می‌کند و سپس Wrangler را، به‌طور پیش‌فرض روی پورت ۳۰۰۰، راه می‌اندازد. مهاجرت محلی با مهاجرت سرور سایت یکی نیست. ورود واقعی و همگام‌سازی به هویت و زیرساخت Sites وابسته‌اند؛ اجرای محلی به‌تنهایی جایگزین تنظیم آن‌ها نمی‌شود.
 
-## 0.7.0 — empty workspace and personnel passwords
-New production localStorage and cloud metadata namespaces (`mavon-finance-live-v1`, `mavon-cloud-live-v1`) start empty; prior demo data remains archived in the old namespace and is never automatically imported. New `live_workspace`/`live_commits` tables isolate the operational workspace from old demo uploads, retaining old tables untouched. Sample links/buttons and query-triggered seeding are disabled; one empty main warehouse and type groups remain as system definitions.
+دستورهای دیگر:
 
-Sites private access boundary is preserved. Inside it, application username/password login is required for every new page session and all financial API endpoints. Owner sets credentials on first use; no default password. Personnel get individual usernames/passwords and server write permissions. Passwords use random salts and PBKDF2-SHA256 (100,000 iterations); server stores no plaintext or reversible passwords. Session tokens are random, stored as SHA256, in Secure HttpOnly SameSite=Strict cookies with seven-day expiration, bound to the platform identity. Logout, password reset, deactivation and permission updates revoke sessions. Login throttles after eight attempts per username/platform-or-IP bucket for ten minutes. Passwords/credential hashes are excluded from financial exports, sync and member listings. The site remains private, so ChatGPT Site access can precede the application login; no audience expansion was made.
+```bash
+# اجرای مجموعه آزمون‌ها
+npm test
 
-Login screen hides the financial interface until unlocked. A device-local independent password verifier supports offline entry for 72 hours after a successful online login; no plaintext password is saved. This is a local screen lock, not encryption or a secure hardware vault: browser data is not encrypted, and offline revocations only take effect upon reconnection. Users cannot switch identities with another user's unsynced changes. Existing local role simulation is no longer the personnel management entrypoint. Initial setup and first login require internet. No email/SMS password recovery or automated account provisioning is included; owner can reset personnel passwords.
+# تولید مهاجرت از تعریف ساختار داده
+npm run db:generate
 
-Validation adds fresh empty startup/ignored demo URLs; setup-only-once, independent credentials, wrong password, salted hashes, session logout/revocation, password change/reset, duplicate username, password policy, brute-force throttling, CSRF, no hash leakage; real login UI online/offline password checks. Financial and two-device sync regressions remain passing. Mac 0.7.0 retains bundle/userData identity and includes the new empty/login client; actual macOS execution remains unverified.
+# ساخت بستهٔ مک Apple Silicon
+npm run package:mac
+```
 
-## 0.7.1 — numeric 4–6 digit passwords
-All newly set passwords (owner setup, personnel create/reset and self-change) must be 4–6 digits. Persian and Arabic digits normalize to ASCII without trimming, grouping, or number coercion; leading zeroes are preserved. New-password forms enforce numeric length/pattern and show numeric keyboards. Online and cached offline entry accept the same digit variants. Existing legacy passwords remain usable for signing in and changing to the new numeric format, so updates do not lock out existing accounts. Storage keys, database data, accounts and hashing/throttling remain unchanged; no database migration or reset is performed.
+خروجی بسته‌بندی مک در `release/` قرار می‌گیرد. شناسهٔ سایت و تنظیمات میزبانی فعلی را برای ادامهٔ همان سایت حفظ کنید؛ این فایل‌ها حاوی تنظیمات استقرار هستند و انتشار از گیت‌هاب را خودکار نمی‌کنند.
 
-Validation: 4/5/6-digit creation/login, rejection of letters, whitespace, decimal/negative, short/long and non-string inputs, Persian/Arabic input, leading zeros and offline verification. Full financial/sync/auth regressions pass. Updated Mac bundle is still unsigned by Apple and actual macOS execution is unverified.
+### وضعیت آزمون‌ها
 
-## 0.7.2 — explicit first account setup and owner recovery
-Login now includes an explicit "حساب ندارم / راه‌اندازی مدیر" control; `?setup=1` opens setup/recovery after verifying Site identity. First-time owners select their own username and 4–6 digit PIN; no credentials are silently created. If owner credentials already exist, only the platform identity recorded as the workspace owner may intentionally replace them, with an audit entry and revocation of prior owner sessions. Financial data, staff accounts and permissions are not reset. The owner's current username is included only in the owner-authenticated setup status.
+طبق مستندات نسخه‌های قبلی، آزمون‌های رگرسیون مالی، موجودی، برگشت‌ها، ورود و رمز، مجوزها، همگام‌سازی، تعارض و نسخهٔ دسکتاپ اجرا شده‌اند. بررسی مرورگری هم برای چند سناریوی مالی، آفلاین و خروجی Excel گزارش شده است. این سوابق، گزارش اجرای قبلی‌اند؛ تغییر فارسی‌سازی این فایل به معنی اجرای مجدد آزمون‌ها یا تأیید اجرای برنامه روی مک نیست.
 
-Production request logs showed a successful password login immediately followed by an unauthorized session request; cookie persistence was not verified. In addition to the existing Secure HttpOnly cookie, successful credential actions now return a session token kept only in the page's JS closure and sent in the Authorization header. PasswordSession validates either channel with the same token hash, expiration, credential version and platform-identity binding. Logout and password changes clear/rotate the memory token. No token is written to localStorage or offline verifiers. This handles clients that do not retain the application cookie without dropping authorization requirements.
+## نگهداری داده و محدودیت‌ها
 
-Validation adds non-owner recovery rejection, owner recovery without prior app password, unchanged financial snapshots, cookie-free bearer authentication, platform binding, explicit recovery UI with disabled cookies, and token clearing. Password, financial, offline and sync regressions pass. Mac packaging remains unsigned by Apple and not executed on macOS here.
+کلید محلی عملیاتی از نسخهٔ ۰.۷.۰، `mavon-finance-live-v1` و کلید فرادادهٔ ابری `mavon-cloud-live-v1` است. داده‌های قدیمی زیر کلیدهای پیشین، از جمله `mavon-finance-v1`، جدا باقی می‌مانند. جدول‌های `live_workspace` و `live_commits` نیز فضای عملیاتی را از بارگذاری‌های نمایشی قدیمی جدا می‌کنند.
+
+در ارتقا، نشانی سایت، کلیدهای ذخیره‌سازی، شناسهٔ برنامه و سازگاری پشتیبان‌ها را حفظ کنید. مهاجرت داده باید با پشتیبان و بدون پاک کردن رکوردهای قبلی انجام شود. تبدیل مبلغ‌های قدیمی از تومان به ریال یک‌بار انجام می‌شود و نشانگر `currency: IRR` از تبدیل دوباره جلوگیری می‌کند.
+
+سوابق تغییرات محلی شامل مقادیر قبل و بعد و زمان و عامل تغییر است، اما از طریق فضای ذخیره‌سازی مرورگر قابل تغییر است و لاگ غیرقابل‌دست‌کاری محسوب نمی‌شود. نسخه‌های سرور، هویت و زمان معتبر سمت سرور را ثبت می‌کنند؛ مشخصات تاریخی واردشده، خودبه‌خود تأییدشده نیستند.
+
+پاک کردن داده‌های مرورگر می‌تواند اطلاعات محلی و تغییرات ارسال‌نشده را از بین ببرد؛ به‌طور منظم پشتیبان JSON بگیرید. این پروژه به‌تنهایی تضمین انطباق مالیاتی، حسابداری قانونی یا حفاظت رمزنگاری‌شده از داده‌های دستگاه ارائه نمی‌کند.
+
+## تاریخچهٔ نسخه‌ها
+
+توضیحات این بخش روند توسعه را نشان می‌دهد؛ محدودیت‌ها و رفتارهای قدیمی ممکن است در نسخه‌های بعدی تغییر کرده باشند. برای وضعیت فعلی، بخش‌های بالاتر را بخوانید.
+
+### ۰.۷.۲ — راه‌اندازی روشن حساب مدیر و بازیابی مالک
+
+گزینهٔ مشخص راه‌اندازی و مسیر `?setup=1` اضافه شد. مالک ثبت‌شده می‌تواند مشخصات مدیر را بدون پاک کردن اطلاعات مالی یا کاربران بازیابی کند. نشست در حافظه برای محیط‌های بدون کوکی پشتیبانی شد و در خروج یا تغییر رمز پاک یا جایگزین می‌شود. آزمون‌های گزارش‌شده، رد بازیابی توسط غیرمالک، حفظ داده‌ها، هویت پلتفرم و ورود بدون کوکی را پوشش می‌دهند.
+
+### ۰.۷.۱ — رمز عددی ۴ تا ۶ رقمی
+
+رمزهای جدید به ۴ تا ۶ رقم محدود شدند؛ تبدیل ارقام فارسی و عربی بدون حذف صفر اول انجام می‌شود. رمزهای قدیمی برای ورود و تغییر به قالب جدید معتبر ماندند. پایگاه داده، حساب‌ها و کلیدهای ذخیره‌سازی بازنشانی نشدند.
+
+### ۰.۷.۰ — فضای عملیاتی خالی و حساب مستقل پرسنل
+
+داده‌های عملیاتی از نمونه‌های قدیمی جدا شدند و ساخت خودکار نمونه غیرفعال شد. ورود واقعی، رمز مستقل هر نفر، مجوزهای سرور، محدودیت تلاش ورود، ابطال نشست و ورود آفلاین محدود اضافه شدند. نسخهٔ مک هویت ثابت برنامه را حفظ کرد.
+
+### ۰.۶.۰ — سرور ماندگار، همگام‌سازی آفلاین و نسخهٔ مک
+
+سورس رابط از `dist/` به `public/` منتقل شد. سرور D1، مهاجرت‌های Drizzle، عضویت معتبر، نسخه‌های ثبت‌شده، همگام‌سازی اختیاری، صف آفلاین، تشخیص تعارض و ادغام سه‌طرفه اضافه شدند. بسته‌بندی Electron برای Apple Silicon و نصب‌کنندهٔ مک ایجاد شد. دادهٔ مالی نمونه در سرور قرار نگرفت.
+
+### ۰.۵.۳ — خروجی واقعی Excel
+
+خروجی XLSX به همهٔ بخش‌ها و جدول جزئیات اسناد اضافه شد. گزارش‌ها فیلتر جاری، تاریخ فارسی، اعداد واقعی، متن فارسی، صفر اول کد و شماره، راست‌به‌چپ بودن و جمع جدول را حفظ می‌کنند. خروجی کامل مدیر، چند شیت شامل ردیف اسناد، مشخصات ثبت و تاریخچه دارد.
+
+### ۰.۵.۲ — بخش مستقل تعریف کالا
+
+تعریف تکی و گروهی و اصلاح مشخصات کالا از گزارش موجودی جدا شد. اطلاعات ذخیره‌شده تغییر نکرد.
+
+### ۰.۵.۱ — ورود کالا و قیمت از Excel و CSV
+
+حالت‌های ایجاد، اصلاح قیمت و ترکیبی، قالب ورودی، خروجی قابل ویرایش قیمت‌ها، پیش‌نمایش و رد رفرنس تکراری اضافه شدند. ثبت انتخاب‌ها به‌صورت یکجا انجام می‌شود و اطلاعات غیرمرتبط حفظ می‌شوند.
+
+### ۰.۵.۰ — چند انبار، انتقال و گزارش‌های تکمیلی
+
+استان، شهر و نشانی طرف‌حساب، چند انبار، انتقال کالا، گزارش ارزش موجودی، برگشت مبتنی بر فاکتور، قیمت‌گذاری گروهی، جریان وجوه یکپارچه و انتخاب‌گرهای قابل جست‌وجو اضافه شدند. اسناد قدیمی بدون تغییر تعداد یا مبلغ به انبار اصلی `wh-main` نسبت داده شدند و پیش از ارتقا از دادهٔ محلی نقطهٔ بازیابی گرفته شد.
+
+### ۰.۴.۱ — تاریخ شمسی و اثر چک هنگام دریافت
+
+ورودی تاریخ و تقویم شمسی با ذخیرهٔ داخلی ISO اضافه شد. سیاست حسابداری چک از اثر هنگام وصول به اثر هنگام دریافت تغییر کرد؛ پرداخت‌های وصول قدیمی حفظ شدند اما از کسر دوباره کنار گذاشته شدند. نشانگر سیاست مالی و پشتیبان، اجرای یک‌بارهٔ تغییر را کنترل می‌کنند. دکمهٔ مستقیم اصلاح فاکتور نیز اضافه شد.
+
+### ۰.۴.۰ — ریال، انتخاب چند کالا و رسید ترکیبی
+
+مبلغ‌های قدیمی با پشتیبان‌گیری و کنترل سرریز یک‌بار از تومان به ریال تبدیل شدند. انتخاب چند کالا بین جست‌وجوها، رسید نقدی و چندچکی، اصلاح اسناد و کنترل‌های مالی تکمیل شدند. نقش پرسنل در این مرحله هنوز شبیه‌سازی محلی بود و مجوز امن سرور محسوب نمی‌شد.
+
+### ۰.۳.۲ — نمایش نمونه در فهرست اصلی
+
+در آن نسخه، نمونهٔ پرداخت ترکیبی با حفظ رکوردهای قبلی و جلوگیری از ایجاد تکراری به فهرست اصلی اضافه شد. این قابلیت نمونه‌سازی در نسخهٔ عملیاتی ۰.۷.۰ غیرفعال شده است.
+
+### ۰.۳.۱ — نمونهٔ پرداخت ترکیبی مستقل
+
+سناریوی آزمایشی جداگانه با فاکتور ۲۰ میلیون تومانی، پرداخت نقدی ۱۰ میلیون و چک ۱۰ میلیون ساخته شد. دادهٔ آن با کلید `mavon-finance-split-demo-v1` از دادهٔ اصلی جدا بود. وصول شبیه‌سازی‌شده تراکنش بانکی واقعی انجام نمی‌داد. این رفتار تاریخی مبنای اجرای نسخهٔ فعلی نیست.
+
+### ۰.۳.۰ — گردش تفصیلی و سوابق تغییرات
+
+جست‌وجوی کاردکس، گردش کامل حساب و رویدادهای قبل و بعد از اصلاح اضافه شدند. ثبت داده و تاریخچه به‌صورت یکجا انجام می‌شد و خطای ذخیره‌سازی هر دو را برمی‌گرداند. عامل تغییر در این مرحله نام خوداظهاری محلی بود؛ زمان‌ها با ساعت دستگاه ثبت و با منطقهٔ `Asia/Tehran` نمایش داده می‌شدند. برای داده‌های قدیمی نام یا زمان ساختگی تولید نشد.
+
+### ۰.۲.۰ — بخش‌بندی و برگشت‌ها
+
+فضاهای جداگانهٔ حساب‌ها، طرف‌حساب‌ها، مالی، انبار، بازرگانی و الگوهای دسترسی اضافه شدند. برگشت جزئی و کامل، سقف مقدار برگشت، تخصیص تخفیف و اثر موجودی و مانده پیاده‌سازی شد. گروه‌ها، پرسنل و برگشت‌ها به‌صورت افزایشی به ساختار داده اضافه شدند و پشتیبان‌های قدیمی قابل خواندن ماندند. الگوهای دسترسی آن نسخه فقط تنظیم محلی بودند.
+
+### ۰.۱.۰ — نمونهٔ اولیه
+
+نسخهٔ نخست، یک برنامهٔ محلی مرورگر با کالا، ورود CSV/XLSX از شیت اول، مشتری و تأمین‌کننده، خرید و فروش، کنترل موجودی، پرداخت، چک، صورت‌حساب، چاپ و پشتیبان JSON بود. پوستهٔ آفلاین پس از اولین بازدید فعال می‌شد. در آن مرحله سرور، ورود واقعی و همگام‌سازی وجود نداشت؛ این امکانات در نسخه‌های بعد اضافه شدند.
