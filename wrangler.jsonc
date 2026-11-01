@@ -1,0 +1,1 @@
+{"name":"mavon-finance","main":"dist/server/index.js","compatibility_date":"2026-10-01","d1_databases":[{"binding":"DB","database_name":"mavon-local","database_id":"00000000-0000-0000-0000-000000000001","migrations_dir":"drizzle"}]}

@@ -1,0 +1,9 @@
+{
+  "name": "mavon-finance-desktop",
+  "productName": "Mavon Finance",
+  "version": "0.7.2",
+  "main": "main.cjs",
+  "description": "Mavon Finance for macOS",
+  "author": "Mavon",
+  "license": "UNLICENSED"
+}

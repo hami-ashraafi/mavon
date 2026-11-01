@@ -1,0 +1,19 @@
+{
+  "name": "mavon-finance",
+  "version": "0.7.2",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "db:generate": "drizzle-kit generate",
+    "test": "node tests/core.cjs && node tests/sync.mjs && node tests/desktop.cjs",
+    "package:mac": "node desktop/package.mjs",
+    "dev": "node scripts/dev.mjs"
+  },
+  "devDependencies": {
+    "@electron/packager": "20.3.0",
+    "drizzle-kit": "0.31.4",
+    "drizzle-orm": "0.44.5",
+    "wrangler": "^4.45.0"
+  }
+}
